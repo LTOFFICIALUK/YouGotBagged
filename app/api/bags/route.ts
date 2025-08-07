@@ -2,6 +2,63 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const BAGS_API_KEY = process.env.BAGS_API_KEY
 
+// Helper function to get current SOL price in USD
+const getSolPrice = async (): Promise<number> => {
+  try {
+    console.log('Fetching current SOL price...')
+    
+    const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd')
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch SOL price: ${response.status}`)
+    }
+    
+    const data = await response.json()
+    
+    if (data.solana && data.solana.usd) {
+      const price = data.solana.usd
+      console.log(`Current SOL price: $${price}`)
+      return price
+    } else {
+      console.error('Failed to fetch SOL price:', data)
+      return 0
+    }
+    
+  } catch (error) {
+    console.error('Error fetching SOL price:', error)
+    return 0
+  }
+}
+
+// Helper function to fetch lifetime fees for a token
+const getLifetimeFees = async (tokenMint: string): Promise<number> => {
+  try {
+    console.log('Fetching lifetime fees for token:', tokenMint)
+    
+    const response = await fetch(`https://api2.bags.fm/api/v1/token-launch/lifetime-fees?tokenMint=${tokenMint}`)
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch lifetime fees: ${response.status}`)
+    }
+    
+    const data = await response.json()
+    
+    if (data.success && data.response) {
+      const lamports = parseFloat(data.response)
+      const sol = lamports / 1000000000 // Convert lamports to SOL
+      console.log(`Lifetime fees for ${tokenMint}: ${lamports} lamports = ${sol} SOL`)
+      return sol
+    } else {
+      console.error('Failed to fetch lifetime fees:', data)
+      return 0
+    }
+    
+  } catch (error) {
+    console.error('Error fetching lifetime fees:', error)
+    return 0
+  }
+}
+
 // Test API connectivity using public APIs only
 const testBagsAPI = async () => {
   console.log('Testing public Bags APIs...')
@@ -184,55 +241,17 @@ const getUnclaimedFees = async (): Promise<any[]> => {
   try {
     console.log('Fetching unclaimed fees using public APIs...')
     
+    // Get current SOL price
+    const solPrice = await getSolPrice()
+    console.log(`Current SOL price: $${solPrice}`)
+    
     // Get all available tokens from the leaderboard API
     console.log('Fetching available tokens from leaderboard API...')
     const availableTokens = await getAllAvailableTokens()
     
     if (availableTokens.length === 0) {
-      console.log('No tokens found from leaderboard API, using fallback tokens')
-      // Fallback to known Bags tokens
-      const fallbackTokens = [
-        {
-          address: 'CyXBDcVQuHyEDbG661Jf3iHqxyd9wNHhE2SiQdNrBAGS',
-          name: 'BAGS Token',
-          symbol: 'BAGS'
-        },
-        {
-          address: '7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr',
-          name: 'BONK',
-          symbol: 'BONK'
-        },
-        {
-          address: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263',
-          name: 'Dogwifhat',
-          symbol: 'WIF'
-        }
-      ]
-      
-      // Get detailed info for fallback tokens
-      const tokensWithInfo = await Promise.all(
-        fallbackTokens.map(async (token) => {
-          const tokenInfo = await getTokenInfo(token.address)
-          return {
-            ...token,
-            ...tokenInfo
-          }
-        })
-      )
-      
-      // Generate mock unclaimed fees for fallback tokens
-      return tokensWithInfo.map((token) => ({
-        tokenAddress: token.address,
-        tokenName: token.name,
-        tokenSymbol: token.symbol,
-        unclaimedAmount: Math.random() * 1000 + 100, // 100-1100 SOL
-        totalFees: Math.random() * 2000 + 500, // 500-2500 SOL
-        imageUrl: token.imageUrl,
-        marketCap: Number(token.marketCap) || 0,
-        price: Number(token.price) || 0,
-        volume24h: Number(token.volume24h) || 0,
-        priceChange24h: Number(token.priceChange24h) || 0
-      }))
+      console.log('No tokens found from leaderboard API')
+      return []
     }
     
     console.log(`Found ${availableTokens.length} tokens from leaderboard API`)
@@ -240,7 +259,7 @@ const getUnclaimedFees = async (): Promise<any[]> => {
     // Get detailed info for each token using the token find API
     console.log('Fetching detailed token information...')
     const tokensWithInfo = await Promise.all(
-      availableTokens.slice(0, 20).map(async (token) => { // Limit to first 20 to avoid rate limits
+      availableTokens.map(async (token) => {
         try {
           const tokenInfo = await getTokenInfo(token.address)
           return {
@@ -254,31 +273,53 @@ const getUnclaimedFees = async (): Promise<any[]> => {
       })
     )
     
-    // Generate mock unclaimed fees for all tokens
-    console.log('Generating unclaimed fees data...')
-    const tokensWithFees = tokensWithInfo.map((token) => {
-      const unclaimedAmount = Math.random() * 1000 + 100 // 100-1100 SOL
-      const totalFees = unclaimedAmount + Math.random() * 1000 // Total fees > unclaimed
-      
-      return {
-        tokenAddress: token.address,
-        tokenName: token.name,
-        tokenSymbol: token.symbol,
-        unclaimedAmount,
-        totalFees,
-        imageUrl: token.imageUrl,
-        marketCap: Number(token.marketCap) || 0,
-        price: Number(token.price) || 0,
-        volume24h: Number(token.volume24h) || 0,
-        priceChange24h: Number(token.priceChange24h) || 0
-      }
-    })
+    // Get real lifetime fees for all tokens
+    console.log('Fetching real lifetime fees data...')
+    const tokensWithRealFees = await Promise.all(
+      tokensWithInfo.map(async (token) => {
+        try {
+          const lifetimeFees = await getLifetimeFees(token.address)
+          const lifetimeFeesUSD = lifetimeFees * solPrice
+          
+          return {
+            tokenAddress: token.address,
+            tokenName: token.name,
+            tokenSymbol: token.symbol,
+            unclaimedAmount: lifetimeFees * 0.1, // Assume 10% is unclaimed
+            totalFees: lifetimeFees,
+            lifetimeFees,
+            lifetimeFeesUSD,
+            imageUrl: token.imageUrl,
+            marketCap: Number(token.marketCap) || 0,
+            price: Number(token.price) || 0,
+            volume24h: Number(token.volume24h) || 0,
+            priceChange24h: Number(token.priceChange24h) || 0
+          }
+        } catch (error) {
+          console.log(`Failed to get lifetime fees for ${token.address}:`, error)
+          return {
+            tokenAddress: token.address,
+            tokenName: token.name,
+            tokenSymbol: token.symbol,
+            unclaimedAmount: 0,
+            totalFees: 0,
+            lifetimeFees: 0,
+            lifetimeFeesUSD: 0,
+            imageUrl: token.imageUrl,
+            marketCap: Number(token.marketCap) || 0,
+            price: Number(token.price) || 0,
+            volume24h: Number(token.volume24h) || 0,
+            priceChange24h: Number(token.priceChange24h) || 0
+          }
+        }
+      })
+    )
     
-    // Filter for tokens with unclaimed fees > 0
-    const tokensWithUnclaimedFees = tokensWithFees.filter(token => token.unclaimedAmount > 0)
+    // Filter for tokens with lifetime fees > 0
+    const tokensWithFees = tokensWithRealFees.filter(token => token.lifetimeFees > 0)
     
-    console.log(`Generated ${tokensWithUnclaimedFees.length} tokens with unclaimed fees`)
-    return tokensWithUnclaimedFees
+    console.log(`Found ${tokensWithFees.length} tokens with lifetime fees`)
+    return tokensWithFees
   } catch (error) {
     console.error('Failed to fetch unclaimed fees:', error)
     return []
@@ -289,7 +330,7 @@ const getUnclaimedFees = async (): Promise<any[]> => {
 const getTotalUnclaimedValue = async (): Promise<number> => {
   try {
     const fees = await getUnclaimedFees()
-    const total = fees.reduce((sum, fee) => sum + fee.unclaimedAmount, 0)
+    const total = fees.reduce((sum, fee) => sum + (fee.lifetimeFees || 0), 0)
     return total
   } catch (error) {
     console.error('Failed to calculate total unclaimed value:', error)

@@ -35,7 +35,7 @@ export const TokenCard = ({ fee, onClaim }: TokenCardProps) => {
       .map(creator => `@${creator.twitterUsername}`)
       .join(' ')
     
-    const postText = `Hey ${creatorUsernames || `@${fee.tokenSymbol}`} you have $${fee.unclaimedAmount.toFixed(2)} in unclaimed fees from ${fee.tokenSymbol} launched on @bagsapp!
+    const postText = `Hey ${creatorUsernames || `@${fee.tokenSymbol}`} you have generated $${fee.unclaimedAmount.toFixed(2)} in fees from $${fee.tokenSymbol} launched on @bagsapp! Have you claimed them yet?
 
 DM @YouGotBagged to claim your funds! 💰🫵`
     
@@ -138,11 +138,13 @@ DM @YouGotBagged to claim your funds! 💰🫵`
 
           <div className="text-right">
             <p className="font-semibold text-white">
-              ${formatNumber(fee.unclaimedAmount, 2)}
+              Total Raised
             </p>
-            <p className="text-xs text-muted-foreground">
-              Unclaimed Fees
-            </p>
+            {fee.lifetimeFeesUSD && fee.lifetimeFeesUSD > 0 && (
+              <p className="text-xs text-muted-foreground">
+                ${formatNumber(fee.lifetimeFeesUSD, 0)} USD
+              </p>
+            )}
           </div>
           
           <button 

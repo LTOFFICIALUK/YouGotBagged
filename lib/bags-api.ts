@@ -5,6 +5,8 @@ export interface UnclaimedFee {
   tokenSymbol: string
   unclaimedAmount: number
   totalFees: number
+  lifetimeFees?: number
+  lifetimeFeesUSD?: number
   lastClaimed?: string
   imageUrl?: string
   positionId?: string
@@ -114,6 +116,63 @@ export const getTokenCreators = async (tokenMint: string): Promise<Creator[]> =>
   } catch (error) {
     console.error('Error fetching creator data:', error)
     return []
+  }
+}
+
+// Function to fetch lifetime fees for a token
+export const getLifetimeFees = async (tokenMint: string): Promise<number> => {
+  try {
+    console.log('Fetching lifetime fees for token:', tokenMint)
+    
+    const response = await fetch(`https://api2.bags.fm/api/v1/token-launch/lifetime-fees?tokenMint=${tokenMint}`)
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch lifetime fees: ${response.status}`)
+    }
+    
+    const data = await response.json()
+    
+    if (data.success && data.response) {
+      const lamports = parseFloat(data.response)
+      const sol = lamports / 1000000000 // Convert lamports to SOL
+      console.log(`Lifetime fees for ${tokenMint}: ${lamports} lamports = ${sol} SOL`)
+      return sol
+    } else {
+      console.error('Failed to fetch lifetime fees:', data)
+      return 0
+    }
+    
+  } catch (error) {
+    console.error('Error fetching lifetime fees:', error)
+    return 0
+  }
+}
+
+// Function to get current SOL price in USD
+export const getSolPrice = async (): Promise<number> => {
+  try {
+    console.log('Fetching current SOL price...')
+    
+    const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd')
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch SOL price: ${response.status}`)
+    }
+    
+    const data = await response.json()
+    
+    if (data.solana && data.solana.usd) {
+      const price = data.solana.usd
+      console.log(`Current SOL price: $${price}`)
+      return price
+    } else {
+      console.error('Failed to fetch SOL price:', data)
+      return 0
+    }
+    
+  } catch (error) {
+    console.error('Error fetching SOL price:', error)
+    return 0
   }
 }
 

@@ -6,7 +6,7 @@ import { formatCurrency, getRelativeTime } from '@/lib/utils'
 import { TokenCard } from '@/components/TokenCard'
 import { Header } from '@/components/Header'
 import { Hero } from '@/components/Hero'
-import { ApiDebug } from '@/components/ApiDebug'
+
 import { 
   DollarSign, 
   TrendingUp, 
@@ -79,7 +79,6 @@ export default function Dashboard() {
 
     return (
     <div className="min-h-screen bg-background">
-      <ApiDebug />
       <Header onRefresh={handleRefresh} refreshing={refreshing} />
 
       {/* Hero Section */}
@@ -99,7 +98,7 @@ export default function Dashboard() {
           <div className="glass-effect rounded-lg p-6 card-hover">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-muted-foreground text-sm">Total Unclaimed</p>
+                <p className="text-muted-foreground text-sm">Total Raised</p>
                 <p className="text-2xl font-bold text-white">
                   {formatCurrency(totalValue)}
                 </p>
@@ -133,9 +132,9 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Unclaimed Fees List */}
+        {/* Total Raised List */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-foreground">Unclaimed Tokens</h2>
+          <h2 className="text-xl font-semibold text-foreground">Total Raised</h2>
           
           {unclaimedFees.length === 0 ? (
             <div className="glass-effect rounded-lg p-8 text-center">
