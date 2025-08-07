@@ -6,6 +6,8 @@ import { formatCurrency, getRelativeTime } from '@/lib/utils'
 import { TokenCard } from '@/components/TokenCard'
 import { Header } from '@/components/Header'
 import { Hero } from '@/components/Hero'
+import { FeeShareTracker } from '@/components/FeeShareTracker'
+import { FeeAnalyzer } from '@/components/FeeAnalyzer'
 
 import { 
   DollarSign, 
@@ -132,8 +134,18 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Fee Share Wallet Tracker */}
+        <div className="mb-8">
+          <FeeShareTracker />
+        </div>
+
+        {/* Fee Claim Analysis */}
+        <div className="mb-8">
+          <FeeAnalyzer />
+        </div>
+
         {/* Total Raised List */}
-        <div className="space-y-4">
+        <div className="space-y-4 mb-8">
           <h2 className="text-xl font-semibold text-foreground">Total Raised</h2>
           
           {unclaimedFees.length === 0 ? (

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type { BagscreenerToken } from '@/lib/bagscreener-api'
 
 const BAGS_API_KEY = process.env.BAGS_API_KEY
 
@@ -202,34 +203,21 @@ const getTokenInfo = async (tokenAddress: string): Promise<any> => {
 // Get all available tokens from Bags API
 const getAllAvailableTokens = async (): Promise<any[]> => {
   try {
-    console.log('Fetching all available tokens from Bags API...')
+    console.log('Fetching all available tokens from Bagscreener API...')
+    const { getAllTokens } = await import('@/lib/bagscreener-api')
+    const tokens = await getAllTokens()
     
-    // Use the working leaderboard endpoint
-    try {
-      console.log('Fetching from Bags leaderboard API...')
-      const response = await fetch('https://api2.bags.fm/api/v1/token-launch/leaderboard')
-      
-      if (response.ok) {
-        const data = await response.json()
-        
-        if (data.success && data.response && Array.isArray(data.response)) {
-          console.log(`Found ${data.response.length} tokens via leaderboard API`)
-          return data.response.map((token: any) => ({
-            address: token.tokenAddress,
-            name: token.name,
-            symbol: token.symbol,
-            imageUrl: token.image,
-            price: token.price,
-            marketCap: 0 // Not provided by leaderboard
-          }))
-        }
-      }
-    } catch (error) {
-      console.log('Leaderboard API failed:', error)
-    }
-    
-    console.log('No tokens found from leaderboard API')
-    return []
+    console.log(`Found ${tokens.length} tokens via Bagscreener API`)
+    return tokens.map((token: any) => ({
+      address: token.token_address,
+      name: token.name || 'Unknown',
+      symbol: token.symbol || 'UNKNOWN',
+      imageUrl: token.image_url || null,
+      price: parseFloat(token.price_usd),
+      marketCap: parseFloat(token.market_cap_usd),
+      lifetimeFees: parseFloat(token.lifetime_fees_sol),
+      claimedFees: parseFloat(token.fees_claimed_sol)
+    }))
   } catch (error) {
     console.error('Failed to fetch available tokens:', error)
     return []
@@ -245,16 +233,16 @@ const getUnclaimedFees = async (): Promise<any[]> => {
     const solPrice = await getSolPrice()
     console.log(`Current SOL price: $${solPrice}`)
     
-    // Get all available tokens from the leaderboard API
-    console.log('Fetching available tokens from leaderboard API...')
+    // Get all available tokens from Bagscreener API
+    console.log('Fetching available tokens from Bagscreener API...')
     const availableTokens = await getAllAvailableTokens()
     
     if (availableTokens.length === 0) {
-      console.log('No tokens found from leaderboard API')
+      console.log('No tokens found from Bagscreener API')
       return []
     }
     
-    console.log(`Found ${availableTokens.length} tokens from leaderboard API`)
+    console.log(`Found ${availableTokens.length} tokens from Bagscreener API`)
     
     // Get detailed info for each token using the token find API
     console.log('Fetching detailed token information...')

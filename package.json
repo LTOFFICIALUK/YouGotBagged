@@ -6,11 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test-fee-share": "ts-node scripts/test-fee-share-tracking.ts",
+    "test-cache": "ts-node scripts/cache-test.ts",
+    "test-creators": "ts-node scripts/test-creator-lookup.ts"
   },
   "dependencies": {
     "@bagsfm/bags-sdk": "^1.0.2",
     "@solana/web3.js": "^1.98.4",
+    "@supabase/supabase-js": "^2.54.0",
     "bs58": "^6.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",

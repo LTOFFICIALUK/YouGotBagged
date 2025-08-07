@@ -1,22 +1,54 @@
-import { UnclaimedFee, claimFees, getTokenCreators, Creator } from '@/lib/bags-api'
+import { UnclaimedFee, claimFees } from '@/lib/bags-api'
 import { formatNumber, truncateAddress } from '@/lib/utils'
 import { useState, useEffect } from 'react'
+import { Activity, RefreshCw } from 'lucide-react'
+import { getTokenClaimedFees } from '@/lib/bagscreener-api'
+
+interface Creator {
+  username: string
+  pfp: string
+  twitterUsername: string
+  royaltyBps: number
+  isCreator: boolean
+  wallet: string
+}
 
 interface TokenCardProps {
   fee: UnclaimedFee
   onClaim?: (tokenAddress: string) => void
 }
 
+interface CreatorEarning {
+  tokenSymbol: string
+  calculatedEarnings: number
+}
+
 export const TokenCard = ({ fee, onClaim }: TokenCardProps) => {
   const [creators, setCreators] = useState<Creator[]>([])
   const [loadingCreators, setLoadingCreators] = useState(false)
+  const [claimedPercentage, setClaimedPercentage] = useState<number | null>(null)
+  const [loadingClaimed, setLoadingClaimed] = useState(false)
+  const [claimedError, setClaimedError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchCreators = async () => {
       setLoadingCreators(true)
       try {
-        const creatorData = await getTokenCreators(fee.tokenAddress)
-        setCreators(creatorData)
+        const response = await fetch(
+          `https://api2.bags.fm/api/v1/token-launch/creator/v2?tokenMint=${fee.tokenAddress}`
+        )
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch creator data: ${response.status}`)
+        }
+        
+        const data = await response.json()
+        
+        if (data.success && data.response) {
+          setCreators(data.response)
+        } else {
+          throw new Error('Failed to fetch creator data')
+        }
       } catch (error) {
         console.error('Failed to fetch creators:', error)
       } finally {
@@ -25,6 +57,33 @@ export const TokenCard = ({ fee, onClaim }: TokenCardProps) => {
     }
 
     fetchCreators()
+  }, [fee.tokenAddress])
+
+  const fetchClaimedPercentage = async (quick: boolean = true) => {
+    setLoadingClaimed(true)
+    setClaimedError(null)
+    
+    try {
+      // Get claimed fees data from Bagscreener
+      const claimedData = await getTokenClaimedFees(fee.tokenAddress)
+      
+      if (!claimedData) {
+        setClaimedError('Failed to fetch claimed fees data')
+        return
+      }
+
+      setClaimedPercentage(claimedData.claimedPercentage)
+    } catch (error) {
+      console.error('Error calculating claimed percentage:', error)
+      setClaimedError('Failed to calculate claimed percentage')
+    } finally {
+      setLoadingClaimed(false)
+    }
+  }
+
+  // Auto-fetch quick estimate on component mount
+  useEffect(() => {
+    fetchClaimedPercentage(true)
   }, [fee.tokenAddress])
 
   const handlePost = () => {
@@ -131,7 +190,11 @@ DM @YouGotBagged to claim your funds! 💰🫵`
             </p>
             {fee.volume24h !== undefined && fee.volume24h !== null && Number(fee.volume24h) > 0 && (
               <p className="text-xs text-muted-foreground">
-                Vol: ${formatNumber(Number(fee.volume24h) / 1000, 1)}K
+                Vol: ${Number(fee.volume24h) >= 1000000 
+                  ? `${formatNumber(Number(fee.volume24h) / 1000000, 1)}M`
+                  : Number(fee.volume24h) >= 1000
+                    ? `${formatNumber(Number(fee.volume24h) / 1000, 1)}K`
+                    : formatNumber(Number(fee.volume24h), 0)}
               </p>
             )}
           </div>
@@ -143,6 +206,44 @@ DM @YouGotBagged to claim your funds! 💰🫵`
             {fee.lifetimeFeesUSD && fee.lifetimeFeesUSD > 0 && (
               <p className="text-xs text-muted-foreground">
                 ${formatNumber(fee.lifetimeFeesUSD, 0)} USD
+              </p>
+            )}
+          </div>
+
+          <div className="text-right">
+            <p className="font-semibold text-white">
+              Claimed
+            </p>
+            {loadingClaimed ? (
+              <div className="flex items-center justify-end gap-1">
+                <RefreshCw className="h-3 w-3 animate-spin" />
+                <p className="text-xs text-muted-foreground">Loading...</p>
+              </div>
+            ) : claimedError ? (
+              <div className="text-right">
+                <p className="text-xs text-red-400">Error</p>
+                <button
+                  onClick={() => fetchClaimedPercentage(true)}
+                  className="text-xs text-blue-400 hover:text-blue-300"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : claimedPercentage !== null ? (
+              <div className="text-right">
+                <p className={`text-xs ${
+                  claimedPercentage <= 20 
+                    ? 'text-green-400 font-semibold' 
+                    : claimedPercentage <= 50 
+                      ? 'text-blue-400 font-medium'
+                      : 'text-muted-foreground'
+                }`}>
+                  {claimedPercentage.toFixed(1)}%
+                </p>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Unknown
               </p>
             )}
           </div>
