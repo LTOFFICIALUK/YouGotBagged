@@ -42,7 +42,7 @@ export const Hero = ({
       {/* Follow Button */}
       <div className="mb-6">
         <a 
-          href="https://x.com/YouGotBagged" 
+          href="https://x.com/intent/follow?screen_name=YouGotBagged" 
           target="_blank" 
           rel="noopener noreferrer"
           className="inline-block bg-primary text-primary-foreground px-9 py-3 rounded-full font-bold hover:bg-primary/90 transition-colors text-lg"
