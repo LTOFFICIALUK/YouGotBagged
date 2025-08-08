@@ -13,7 +13,7 @@ export const Header = ({ onRefresh, refreshing }: HeaderProps) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Image
-              src="/logo.png"
+              src="/Logo.png"
               alt="YouGotBagged Logo"
               width={48}
               height={48}
