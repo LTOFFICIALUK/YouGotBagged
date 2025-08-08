@@ -60,7 +60,7 @@ export const Hero = ({
           className="inline-block bg-transparent border border-border/60 text-foreground px-9 py-3 rounded-full font-bold hover:bg-white/5 transition-colors text-lg"
           aria-label="Follow @YouGotBagged on X"
         >
-          Follow us on X
+          Follow us X
         </a>
       </div>
 
