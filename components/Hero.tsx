@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import { Wallet, Copy } from 'lucide-react'
+import Link from 'next/link'
 
 interface HeroProps {
   solBalance?: number
@@ -43,15 +44,23 @@ export const Hero = ({
         <p className="text-gray-400 text-xl text-center">YouGotBagged uses the power of the community to help others find their bags.</p>
       </div>
 
-      {/* Follow Button */}
-      <div className="mb-6">
+      {/* CTA Buttons */}
+      <div className="mb-6 flex items-center gap-3">
+        <Link
+          href="/$BAGGED-Token"
+          className="inline-block bg-primary text-primary-foreground px-9 py-3 rounded-full font-bold hover:bg-primary/90 transition-colors text-lg"
+          aria-label="Go to $BAGGED token page"
+        >
+          $BAGGED
+        </Link>
         <a 
           href="https://x.com/intent/follow?screen_name=YouGotBagged" 
           target="_blank" 
           rel="noopener noreferrer"
-          className="inline-block bg-primary text-primary-foreground px-9 py-3 rounded-full font-bold hover:bg-primary/90 transition-colors text-lg"
+          className="inline-block bg-transparent border border-border/60 text-foreground px-9 py-3 rounded-full font-bold hover:bg-white/5 transition-colors text-lg"
+          aria-label="Follow @YouGotBagged on X"
         >
-          Follow us X
+          Follow us on X
         </a>
       </div>
 
