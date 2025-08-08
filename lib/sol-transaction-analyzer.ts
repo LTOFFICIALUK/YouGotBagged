@@ -348,20 +348,19 @@ export const displayTokenAnalysis = (analysis: TokenFeeAnalysis) => {
   console.log(`Token: ${analysis.tokenSymbol} (${analysis.tokenName})`)
   console.log(`Address: ${analysis.tokenAddress}`)
   console.log(`Total Creators: ${analysis.totalCreators}`)
-  console.log(`Total SOL Earned: ${analysis.totalDepositsAcrossCreators.toFixed(4)} SOL`)
+  console.log(`Total SOL Earned: ${analysis.totalCalculatedEarnings.toFixed(4)} SOL`)
   console.log(`Total SOL Withdrawn: ${analysis.totalWithdrawalsAcrossCreators.toFixed(4)} SOL`)
-  console.log(`Net SOL Remaining: ${analysis.netFeesRemaining.toFixed(4)} SOL`)
+  console.log(`Net SOL Remaining: ${analysis.totalRemainingAcrossCreators.toFixed(4)} SOL`)
   console.log(`\nCreator Breakdown:`)
   
   analysis.creatorAnalyses.forEach((creator, index) => {
     console.log(`\n${index + 1}. @${creator.twitterUsername}`)
     console.log(`   Wallet: ${creator.walletAddress}`)
-    console.log(`   Total Earned: ${creator.totalDeposits.toFixed(4)} SOL`)
+    console.log(`   Should Have Earned: ${creator.calculatedEarnings.toFixed(4)} SOL`)
     console.log(`   Total Withdrawn: ${creator.totalWithdrawals.toFixed(4)} SOL`)
-    console.log(`   Net Remaining: ${creator.netBalance.toFixed(4)} SOL`)
-    console.log(`   Meteora Deposits: ${creator.meteoraDeposits.toFixed(4)} SOL (${creator.meteoraTransactionCount} txns)`)
-    console.log(`   Total Transactions: ${creator.transactionCount}`)
-    console.log(`   Last Activity: ${creator.lastActivity || 'Never'}`)
+    console.log(`   Remaining Balance: ${creator.remainingBalance.toFixed(4)} SOL`)
+    console.log(`   Withdrawal Count: ${creator.withdrawalCount}`)
+    console.log(`   Last Withdrawal: ${creator.lastWithdrawal || 'Never'}`)
   })
 }
 
