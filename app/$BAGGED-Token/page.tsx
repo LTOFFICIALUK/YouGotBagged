@@ -1,14 +1,14 @@
 import { Header } from '@/components/Header'
 
 const LINKS = [
-  { label: 'Axiom Exchange', href: 'https://axiom.trade' },
-  { label: 'Dexscreener', href: 'https://dexscreener.com' },
-  { label: 'BagsApp', href: 'https://bags.fm' },
+  { label: 'Axiom Exchange', href: 'https://axiom.trade/meme/83BzoNNzcFTGrwdjDDrjURdFQwTxtuPJwZTeGZvZS181' },
+  { label: 'Dexscreener', href: 'https://dexscreener.com/solana/83bzonnzcftgrwdjddrjurdfqwtxtupjwztegzvzs181' },
+  { label: 'BagsApp', href: 'https://bags.fm/HLLYu3aeNmLXg4bvA9L6UfL1gEk9ACCLJdTKFEinBAGS' },
   { label: 'X (Twitter)', href: 'https://x.com/YouGotBagged' },
 ]
 
 export default function BaggedTokenPage() {
-  const contractAddress = '123'
+  const contractAddress = 'HLLYu3aeNmLXg4bvA9L6UfL1gEk9ACCLJdTKFEinBAGS'
 
   return (
     <>
