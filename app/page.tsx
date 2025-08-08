@@ -7,6 +7,7 @@ import { TokenCard } from '@/components/TokenCard'
 import { Header } from '@/components/Header'
 import { Hero } from '@/components/Hero'
 import { FeeShareTracker } from '@/components/FeeShareTracker'
+import { Leaderboard } from '@/components/Leaderboard'
 // import { FeeAnalyzer } from '@/components/FeeAnalyzer'
 
 import { 
@@ -188,6 +189,11 @@ export default function Dashboard() {
         {/* <div className="mb-8">
           <FeeAnalyzer />
         </div> */}
+
+        {/* Leaderboard Section */}
+        <div className="mb-8">
+          <Leaderboard limit={5} />
+        </div>
 
         {/* Total Raised List */}
         <div className="space-y-4 mb-8">
