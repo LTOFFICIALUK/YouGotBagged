@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAllAvailableTokens, getTokenCreators } from '@/lib/bags-api'
+import { getTokenCreators } from '@/lib/bags-api'
+import { getAllAvailableTokens } from '@/lib/fee-share-tracker'
 import { getFeeShareWallet } from '@/lib/fee-share-tracker'
 import { calculateWaterfallClaims, WaterfallClaimResult, CreatorTokenEarning } from '@/lib/claimed-percentage-calculator'
 
