@@ -35,7 +35,7 @@ export const TokenCard = ({ fee, onClaim }: TokenCardProps) => {
       setLoadingCreators(true)
       try {
         const response = await fetch(
-          `https://api2.bags.fm/api/v1/token-launch/creator/v2?tokenMint=${fee.tokenAddress}`
+          `/api/proxy/creator?tokenMint=${fee.tokenAddress}`
         )
         
         if (!response.ok) {
