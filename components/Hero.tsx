@@ -65,10 +65,10 @@ export const Hero = ({
       </div>
 
       {/* SOL Balance */}
-      <div className="flex items-center gap-3 mb-12">
+      {/* <div className="flex items-center gap-3 mb-12">
         <Wallet className="w-6 h-6 text-primary" />
         <span className="text-white font-semibold text-lg">{solBalance} SOL Claimed</span>
-      </div>
+      </div> */}
     </div>
   )
 } 
