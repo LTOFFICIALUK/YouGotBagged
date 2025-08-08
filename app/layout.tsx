@@ -8,6 +8,11 @@ export const metadata: Metadata = {
   description: 'Track and manage unclaimed fees from your Bags tokens',
   keywords: ['bags', 'tokens', 'fees', 'dashboard', 'solana'],
   authors: [{ name: 'YouGotBagged Team' }],
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  }
 }
 
 export const viewport = {
