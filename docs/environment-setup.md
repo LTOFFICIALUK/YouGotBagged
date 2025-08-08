@@ -32,6 +32,7 @@ NEXT_PUBLIC_APP_URL=https://yougotbagged.fun
    - **Type of App**: Web App
    - **Callback URL**: `https://yougotbagged.fun/api/auth/x/callback`
    - **Website URL**: `https://yougotbagged.fun`
+   - **Required scopes**: `users.read`
 
 ### 3. Get Your Credentials
 1. Go to "Keys and tokens" tab

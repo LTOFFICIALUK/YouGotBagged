@@ -5,6 +5,12 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code')
   const state = searchParams.get('state')
   const error = searchParams.get('error')
+  const error_description = searchParams.get('error_description')
+
+  console.log('OAuth Callback - Code:', code ? 'present' : 'missing')
+  console.log('OAuth Callback - State:', state ? 'present' : 'missing')
+  console.log('OAuth Callback - Error:', error)
+  console.log('OAuth Callback - Error Description:', error_description)
 
   if (error) {
     return NextResponse.redirect(`https://yougotbagged.fun?error=${error}`)

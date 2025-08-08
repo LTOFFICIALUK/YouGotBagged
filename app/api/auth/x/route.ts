@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { storeUserSession } from '@/lib/supabase'
+import crypto from 'crypto'
 
 const X_CLIENT_ID = process.env.X_CLIENT_ID
 const X_CLIENT_SECRET = process.env.X_CLIENT_SECRET
@@ -25,14 +26,29 @@ export async function GET(request: NextRequest) {
       }, { status: 500 })
     }
 
-    // Generate OAuth URL for X
-    const state = Math.random().toString(36).substring(7)
+    // Generate PKCE code verifier and challenge
+    const codeVerifier = crypto.randomBytes(32).toString('base64url')
+    const codeChallenge = crypto.createHash('sha256').update(codeVerifier).digest('base64url')
+    const state = crypto.randomBytes(16).toString('hex')
+    
+    // Store code verifier in session or temporary storage
+    // For now, we'll pass it in the state parameter (not ideal for production)
+    const stateWithVerifier = `${state}.${codeVerifier}`
+    
     const authUrl = `https://twitter.com/i/oauth2/authorize?` +
       `response_type=code&` +
       `client_id=${X_CLIENT_ID}&` +
       `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
-      `scope=${encodeURIComponent('tweet.read users.read offline.access')}&` +
-      `state=${state}`
+      `scope=${encodeURIComponent('users.read')}&` +
+      `state=${stateWithVerifier}&` +
+      `code_challenge=${codeChallenge}&` +
+      `code_challenge_method=S256`
+
+    console.log('Generated OAuth URL:', authUrl)
+    console.log('Client ID:', X_CLIENT_ID)
+    console.log('Redirect URI:', REDIRECT_URI)
+    console.log('Code Challenge:', codeChallenge)
+    console.log('State:', stateWithVerifier)
 
     return NextResponse.json({ authUrl })
   }
@@ -48,7 +64,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Authorization code required' }, { status: 400 })
     }
 
-    // Exchange code for access token
+    // Extract code verifier from state
+    const [originalState, codeVerifier] = state.split('.')
+    
+    if (!codeVerifier) {
+      return NextResponse.json({ error: 'Invalid state parameter' }, { status: 400 })
+    }
+
+    // Exchange code for access token with PKCE
     const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
       method: 'POST',
       headers: {
@@ -59,7 +82,7 @@ export async function POST(request: NextRequest) {
         grant_type: 'authorization_code',
         code,
         redirect_uri: REDIRECT_URI,
-        code_verifier: 'challenge' // In production, use PKCE
+        code_verifier: codeVerifier
       })
     })
 
