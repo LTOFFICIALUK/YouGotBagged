@@ -131,8 +131,21 @@ DM @YouGotBagged to claim your funds! 💰🫵`
           
           <div className="flex items-center gap-2">
             <div>
-              <h3 className="font-bold text-white text-lg">
+              <h3 className="font-bold text-white text-lg flex items-center gap-2">
                 {fee.tokenSymbol}
+                <a
+                  href={`https://bags.fm/${fee.tokenAddress}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center w-4 h-4 hover:opacity-80 transition-opacity"
+                  title="View on Bags.fm"
+                >
+                  <img 
+                    src="/bags-logo.png" 
+                    alt="Bags.fm" 
+                    className="w-full h-full object-contain"
+                  />
+                </a>
                 {fee.priceChange24h !== undefined && fee.priceChange24h !== null && (
                   <span className={`ml-2 text-sm font-medium ${
                     Number(fee.priceChange24h) > 0 ? 'text-green-500' : 
