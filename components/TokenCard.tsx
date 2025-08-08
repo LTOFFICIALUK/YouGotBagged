@@ -113,8 +113,8 @@ DM @YouGotBagged to claim your funds! 💰🫵`
 
   return (
     <div className="glass-effect rounded-lg p-4 card-hover">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4 flex-shrink-0">
+      <div className="flex items-center justify-between min-w-0">
+        <div className="flex items-center gap-4 flex-shrink-0 min-w-0 flex-1">
           {fee.imageUrl ? (
             <img 
               src={fee.imageUrl} 
@@ -154,25 +154,25 @@ DM @YouGotBagged to claim your funds! 💰🫵`
                 {loadingCreators ? (
                   <p className="text-sm text-muted-foreground">Loading creators...</p>
                 ) : creators.length > 0 ? (
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 flex-wrap min-w-0">
                     {creators
                       .filter(creator => creator.royaltyBps > 0)
                       .sort((a, b) => b.royaltyBps - a.royaltyBps)
                       .map((creator, index) => (
-                        <div key={creator.wallet} className="flex items-center gap-1">
+                        <div key={creator.wallet} className="flex items-center gap-1 flex-shrink-0">
                           <a
                             href={`https://x.com/${creator.twitterUsername}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                            className="text-sm text-blue-400 hover:text-blue-300 transition-colors truncate"
                           >
                             @{creator.twitterUsername}
                           </a>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs text-muted-foreground flex-shrink-0">
                             ({Math.round(creator.royaltyBps / 100)}%)
                           </span>
                           {index < creators.filter(c => c.royaltyBps > 0).length - 1 && (
-                            <span className="text-muted-foreground">•</span>
+                            <span className="text-muted-foreground flex-shrink-0">•</span>
                           )}
                         </div>
                       ))}
@@ -185,7 +185,7 @@ DM @YouGotBagged to claim your funds! 💰🫵`
           </div>
         </div>
         
-        <div className="flex items-center gap-6 flex-shrink-0 ml-8">
+        <div className="flex items-center gap-8 flex-shrink-0 ml-8 min-w-0">
           <div className="text-right">
             <p className="font-semibold text-white">
               {fee.marketCap && fee.marketCap !== null && Number(fee.marketCap) > 0 

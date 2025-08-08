@@ -20,7 +20,9 @@ import {
   Loader2,
   Search as SearchIcon,
   X as CloseIcon,
+  Filter as FilterIcon,
 } from 'lucide-react'
+import { getTokenClaimedFees } from '@/lib/bagscreener-api'
 
 export default function Dashboard() {
   const [unclaimedFees, setUnclaimedFees] = useState<UnclaimedFee[]>([])
@@ -30,6 +32,9 @@ export default function Dashboard() {
   const [refreshing, setRefreshing] = useState<boolean>(false)
   const [showFeeShareTracker, setShowFeeShareTracker] = useState<boolean>(false)
   const [searchQuery, setSearchQuery] = useState<string>('')
+  const [showZeroOnly, setShowZeroOnly] = useState<boolean>(false)
+  const [claimedMap, setClaimedMap] = useState<Record<string, number | undefined>>({})
+  const [loadingZeroFilter, setLoadingZeroFilter] = useState<boolean>(false)
 
   const handleRefresh = async () => {
     setRefreshing(true)
@@ -72,14 +77,44 @@ export default function Dashboard() {
     fetchData()
   }, [])
 
+  // Fetch claimed percentages when zero filter is enabled
+  useEffect(() => {
+    const loadClaimed = async () => {
+      if (!showZeroOnly) return
+      setLoadingZeroFilter(true)
+      try {
+        const tasks = unclaimedFees
+          .filter(f => claimedMap[f.tokenAddress] === undefined)
+          .map(async (f) => {
+            try {
+              const data = await getTokenClaimedFees(f.tokenAddress)
+              setClaimedMap(prev => ({ ...prev, [f.tokenAddress]: data?.claimedPercentage ?? 0 }))
+            } catch {
+              setClaimedMap(prev => ({ ...prev, [f.tokenAddress]: undefined }))
+            }
+          })
+        await Promise.allSettled(tasks)
+      } finally {
+        setLoadingZeroFilter(false)
+      }
+    }
+    loadClaimed()
+  }, [showZeroOnly, unclaimedFees])
+
   const filteredFees = useMemo(() => {
-    if (!searchQuery.trim()) return unclaimedFees
-    const q = searchQuery.toLowerCase().trim()
-    return unclaimedFees.filter(fee => {
-      const fields = [fee.tokenName, fee.tokenSymbol, fee.tokenAddress]
-      return fields.some(v => (v || '').toLowerCase().includes(q))
-    })
-  }, [searchQuery, unclaimedFees])
+    let list = unclaimedFees
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim()
+      list = list.filter(fee => {
+        const fields = [fee.tokenName, fee.tokenSymbol, fee.tokenAddress]
+        return fields.some(v => (v || '').toLowerCase().includes(q))
+      })
+    }
+    if (showZeroOnly) {
+      list = list.filter(f => claimedMap[f.tokenAddress] === 0)
+    }
+    return list
+  }, [searchQuery, unclaimedFees, showZeroOnly, claimedMap])
 
   if (loading) {
     return (
@@ -158,10 +193,20 @@ export default function Dashboard() {
         <div className="space-y-4 mb-8">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-foreground">Total Raised</h2>
+            <button
+              type="button"
+              onClick={() => setShowZeroOnly(v => !v)}
+              className={`inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors border ${showZeroOnly ? 'bg-primary text-primary-foreground border-transparent' : 'bg-transparent text-foreground border-border/60 hover:bg-white/5'}`}
+              aria-pressed={showZeroOnly}
+            >
+              <FilterIcon className="h-4 w-4" />
+              0% Claimed
+              {showZeroOnly && loadingZeroFilter && <Loader2 className="h-4 w-4 animate-spin" />}
+            </button>
           </div>
 
           <div className="overflow-x-auto">
-            <div className="min-w-[800px] space-y-4">
+            <div className="min-w-[1200px] space-y-4">
               {/* Search Bar */}
               <div className="relative">
                 <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -191,7 +236,7 @@ export default function Dashboard() {
                   <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-foreground mb-2">No matches</h3>
                   <p className="text-muted-foreground">
-                    Try a different search term.
+                    {showZeroOnly ? 'No tokens with 0% claimed were found.' : 'Try a different search term.'}
                   </p>
                 </div>
               ) : (
