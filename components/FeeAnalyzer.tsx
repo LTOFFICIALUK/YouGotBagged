@@ -27,6 +27,13 @@ interface WalletAnalysis {
   withdrawalCount: number
   withdrawalTransactions: SolTransaction[]
   lastWithdrawal: string | null
+  netBalance: number
+  transactionCount: number
+  totalDeposits: number
+  meteoraDeposits: number
+  meteoraTransactionCount: number
+  lastActivity: string | null
+  transactions: SolTransaction[]
 }
 
 interface TokenFeeAnalysis {
