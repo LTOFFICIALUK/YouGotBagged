@@ -8,7 +8,7 @@ const LINKS = [
 ]
 
 export default function BaggedTokenPage() {
-  const contractAddress = 'XXX'
+  const contractAddress = '123'
 
   return (
     <>
