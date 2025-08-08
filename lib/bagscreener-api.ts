@@ -1,7 +1,10 @@
-interface BagscreenerToken {
+export interface BagscreenerToken {
   token_address: string
   token_symbol: string
   token_name: string
+  name: string
+  symbol: string
+  image_url?: string
   creator_username: string | null
   creator_twitter: string | null
   creator_wallet: string | null
@@ -15,21 +18,10 @@ interface BagscreenerToken {
   price_usd: string
 }
 
-interface BagscreenerResponse {
+export interface BagscreenerResponse {
   tokens: BagscreenerToken[]
   cached: boolean
   cacheAge: number
-}
-
-export interface BagscreenerToken {
-  token_address: string
-  name: string
-  symbol: string
-  image_url: string
-  price_usd: string
-  market_cap_usd: string
-  lifetime_fees_sol: string
-  fees_claimed_sol: string
 }
 
 // Cache bagscreener data for 1 minute
