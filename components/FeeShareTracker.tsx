@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { RefreshCw, Wallet, Twitter } from 'lucide-react'
+import { RefreshCw, Wallet, Search } from 'lucide-react'
 
 interface FeeShareWallet {
   twitterUsername: string
@@ -18,40 +18,29 @@ interface TokenFeeShareData {
   totalWallets: number
 }
 
-export const FeeShareTracker = () => {
+interface FeeShareTrackerProps {
+  isOpen: boolean
+  onClose: () => void
+  availableTokens?: Array<{
+    tokenAddress: string
+    tokenName: string
+    tokenSymbol: string
+  }>
+}
+
+export const FeeShareTracker = ({ isOpen, onClose, availableTokens = [] }: FeeShareTrackerProps) => {
+  if (!isOpen) return null
   const [results, setResults] = useState<TokenFeeShareData[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [tokenAddress, setTokenAddress] = useState('')
-  const [showInput, setShowInput] = useState(false)
+  const [showInput, setShowInput] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showTokenSearch, setShowTokenSearch] = useState(false)
 
-  const handleTrackAllTokens = async () => {
-    setLoading(true)
-    setError(null)
-    
-    try {
-      const response = await fetch('/api/bags/fee-share?action=all-tokens')
-      const data = await response.json()
-      
-      if (data.success) {
-        setResults(data.data)
-        console.log('Fee share tracking results:', data.data)
-      } else {
-        setError(data.error || 'Failed to track fee share wallets')
-      }
-    } catch (err) {
-      setError('Network error occurred')
-      console.error('Error tracking fee share wallets:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
 
-  const handleTestTokenClick = () => {
-    setShowInput(true)
-    setError(null)
-    setResults([])
-  }
+
+
 
   const handleTrackSingleToken = async () => {
     if (!tokenAddress.trim()) {
@@ -100,63 +89,117 @@ export const FeeShareTracker = () => {
     }
   }
 
+  const handleTokenSelect = (token: { tokenAddress: string; tokenSymbol: string; tokenName: string }) => {
+    setTokenAddress(token.tokenAddress)
+    setShowTokenSearch(false)
+    setSearchQuery('')
+  }
+
+  const filteredTokens = availableTokens.filter(token =>
+    token.tokenSymbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    token.tokenName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    token.tokenAddress.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
   return (
-    <div className="space-y-6">
-      <div className="glass-effect rounded-lg p-6">
-        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-          <Wallet className="h-6 w-6" />
-          Fee Share Wallet Tracker
-        </h2>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-background/95 backdrop-blur-xl border border-white/20 rounded-lg w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-background/95 backdrop-blur-xl border-b border-white/20 p-4 sm:p-6 flex items-center justify-between">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white flex items-center gap-2">
+            <Wallet className="h-5 w-5 sm:h-6 sm:w-6" />
+            <span className="hidden sm:inline">Fee Share Wallet Tracker</span>
+            <span className="sm:hidden">Fee Wallet Search</span>
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-muted-foreground hover:text-white transition-colors p-1"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+          <div className="glass-effect rounded-lg p-4 sm:p-6">
+
         
         <p className="text-muted-foreground mb-4">
-          Track fee share wallets for tokens by finding creator wallets through their X accounts.
+          Track fee share wallets for tokens by finding BagsApp fee wallets through their X accounts.
         </p>
         
         <div className="space-y-4">
-          <div className="flex gap-4">
-            <button
-              onClick={handleTrackAllTokens}
-              disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 disabled:opacity-50 transition-colors font-bold"
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              Track All Tokens
-            </button>
-            
-            <button
-              onClick={handleTestTokenClick}
-              disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-full hover:bg-secondary/90 disabled:opacity-50 transition-colors font-bold"
-            >
-              <Twitter className="h-4 w-4" />
-              Test a Token
-            </button>
-          </div>
-          
           {showInput && (
             <div className="space-y-3">
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <input
                   type="text"
                   value={tokenAddress}
                   onChange={(e) => setTokenAddress(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Enter token contract address (CA)"
-                  className="flex-1 px-4 py-2 bg-black/20 border border-white/20 rounded-lg text-white placeholder:text-white/50 focus:outline-none focus:border-primary transition-colors"
+                  className="flex-1 px-3 sm:px-4 py-2 bg-black/20 border border-white/20 rounded-lg text-white placeholder:text-white/50 focus:outline-none focus:border-primary transition-colors text-sm sm:text-base"
                 />
                 <button
                   onClick={handleTrackSingleToken}
                   disabled={loading || !tokenAddress.trim()}
-                  className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors font-bold"
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors font-bold text-sm sm:text-base whitespace-nowrap"
                 >
                   {loading ? (
                     <RefreshCw className="h-4 w-4 animate-spin" />
                   ) : (
-                    <Twitter className="h-4 w-4" />
+                    <Wallet className="h-4 w-4" />
                   )}
                   Track
                 </button>
               </div>
+              
+              {availableTokens.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowTokenSearch(!showTokenSearch)}
+                      className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                    >
+                      <Search className="h-4 w-4" />
+                      {showTokenSearch ? 'Hide' : 'Search'} our list ({availableTokens.length})
+                    </button>
+                  </div>
+                  
+                  {showTokenSearch && (
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search tokens by symbol, name, or address..."
+                        className="w-full px-3 py-2 bg-black/20 border border-white/20 rounded-lg text-white placeholder:text-white/50 focus:outline-none focus:border-primary transition-colors text-sm"
+                      />
+                      
+                      <div className="max-h-32 sm:max-h-48 overflow-y-auto space-y-1">
+                        {filteredTokens.slice(0, 20).map((token) => (
+                          <button
+                            key={token.tokenAddress}
+                            onClick={() => handleTokenSelect(token)}
+                            className="w-full text-left p-2 bg-black/10 hover:bg-black/20 rounded-lg transition-colors"
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
+                              <div>
+                                <p className="text-white font-medium text-sm">{token.tokenSymbol}</p>
+                                <p className="text-muted-foreground text-xs">{token.tokenName}</p>
+                              </div>
+                              <p className="text-muted-foreground text-xs font-mono">
+                                {token.tokenAddress.slice(0, 8)}...{token.tokenAddress.slice(-6)}
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                        {filteredTokens.length === 0 && searchQuery && (
+                          <p className="text-muted-foreground text-sm p-2">No tokens found</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              
               <p className="text-sm text-muted-foreground">
                 Enter a Solana token contract address to find creator X accounts and their fee share wallets
               </p>
@@ -179,17 +222,17 @@ export const FeeShareTracker = () => {
           
           {results.map((token, index) => (
             <div key={token.tokenAddress} className="glass-effect rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3">
                 <div>
-                  <h4 className="font-bold text-white text-lg">
+                  <h4 className="font-bold text-white text-base sm:text-lg">
                     {token.tokenSymbol} ({token.tokenName})
                   </h4>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground font-mono break-all">
                     {token.tokenAddress}
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold text-white">
+                <div className="text-left sm:text-right">
+                  <p className="font-semibold text-white text-sm sm:text-base">
                     {token.totalWallets} Fee Share Wallet{token.totalWallets !== 1 ? 's' : ''}
                   </p>
                 </div>
@@ -197,47 +240,35 @@ export const FeeShareTracker = () => {
               
               {token.feeShareWallets.length > 0 ? (
                 <div className="space-y-3">
-                  <div className="text-sm text-green-400 font-medium">
-                    ✅ Process completed successfully!
-                  </div>
-                  <div className="text-sm text-muted-foreground mb-3">
-                    Found {token.feeShareWallets.length} creator{token.feeShareWallets.length !== 1 ? 's' : ''} with fee share wallet{token.feeShareWallets.length !== 1 ? 's' : ''}:
-                  </div>
                   {token.feeShareWallets.map((wallet, walletIndex) => (
-                    <div key={wallet.walletAddress} className="flex items-center justify-between p-3 bg-black/20 rounded-lg border border-white/10">
+                    <div key={wallet.walletAddress} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-black/20 rounded-lg border border-white/10">
                       <div className="flex items-center gap-3">
-                        <Twitter className="h-4 w-4 text-blue-400" />
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium text-white">
+                        <svg className="h-4 w-4 text-blue-400 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <a
+                              href={`https://x.com/${wallet.twitterUsername}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-medium text-blue-400 hover:text-blue-300 transition-colors cursor-pointer hover:underline"
+                              title="View X profile"
+                            >
                               @{wallet.twitterUsername}
-                            </p>
+                            </a>
                             <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">
                               {wallet.royaltyPercentage.toFixed(1)}%
                             </span>
                           </div>
-                          <p className="text-sm text-muted-foreground font-mono">
+                          <button
+                            onClick={() => navigator.clipboard.writeText(wallet.walletAddress)}
+                            className="text-xs sm:text-sm text-muted-foreground font-mono break-all hover:text-white transition-colors cursor-pointer hover:underline"
+                            title="Copy wallet address"
+                          >
                             {wallet.walletAddress}
-                          </p>
+                          </button>
                         </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => navigator.clipboard.writeText(wallet.walletAddress)}
-                          className="text-xs text-blue-400 hover:text-blue-300 transition-colors px-2 py-1 bg-blue-500/10 rounded"
-                          title="Copy wallet address"
-                        >
-                          Copy
-                        </button>
-                        <a
-                          href={`https://x.com/${wallet.twitterUsername}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-blue-400 hover:text-blue-300 transition-colors px-2 py-1 bg-blue-500/10 rounded"
-                          title="View X profile"
-                        >
-                          View X
-                        </a>
                       </div>
                     </div>
                   ))}
@@ -262,6 +293,8 @@ export const FeeShareTracker = () => {
           ))}
         </div>
       )}
+        </div>
+      </div>
     </div>
   )
 } 

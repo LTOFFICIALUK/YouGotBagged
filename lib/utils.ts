@@ -43,7 +43,7 @@ export function getRelativeTime(dateString: string): string {
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
 
   if (diffInSeconds < 60) {
-    return 'just now'
+    return 'Just now'
   } else if (diffInSeconds < 3600) {
     const minutes = Math.floor(diffInSeconds / 60)
     return `${minutes} minute${minutes > 1 ? 's' : ''} ago`

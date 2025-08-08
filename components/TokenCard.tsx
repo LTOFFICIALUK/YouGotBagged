@@ -87,14 +87,21 @@ export const TokenCard = ({ fee, onClaim }: TokenCardProps) => {
   }, [fee.tokenAddress])
 
   const handlePost = () => {
-    // Only include creators with royalty > 0, sorted by highest percentage first
-    const creatorUsernames = creators
+    // Only include the creator with the highest percentage
+    const topCreator = creators
       .filter(creator => creator.royaltyBps > 0)
-      .sort((a, b) => b.royaltyBps - a.royaltyBps)
-      .map(creator => `@${creator.twitterUsername}`)
-      .join(' ')
+      .sort((a, b) => b.royaltyBps - a.royaltyBps)[0]
     
-    const postText = `Hey ${creatorUsernames || `@${fee.tokenSymbol}`} you have generated $${fee.unclaimedAmount.toFixed(2)} in fees from $${fee.tokenSymbol} launched on @bagsapp! Have you claimed them yet?
+    const creatorUsername = topCreator ? `@${topCreator.twitterUsername}` : `@${fee.tokenSymbol}`
+    
+    const totalRaised = fee.lifetimeFeesUSD || fee.totalFees || fee.unclaimedAmount || 0
+    const formattedAmount = totalRaised >= 1000000 
+      ? `$${(totalRaised / 1000000).toFixed(1)}M`
+      : totalRaised >= 1000 
+        ? `$${(totalRaised / 1000).toFixed(1)}K`
+        : `$${totalRaised.toFixed(0)}`
+    
+    const postText = `Hey ${creatorUsername} you have generated ${formattedAmount} in fees from $${fee.tokenSymbol} launched on @bagsapp! Have you claimed them yet?
 
 DM @YouGotBagged to claim your funds! 💰🫵`
     
@@ -107,7 +114,7 @@ DM @YouGotBagged to claim your funds! 💰🫵`
   return (
     <div className="glass-effect rounded-lg p-4 card-hover">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-shrink-0">
           {fee.imageUrl ? (
             <img 
               src={fee.imageUrl} 
@@ -178,7 +185,7 @@ DM @YouGotBagged to claim your funds! 💰🫵`
           </div>
         </div>
         
-                <div className="flex items-center gap-6">
+        <div className="flex items-center gap-6 flex-shrink-0 ml-8">
           <div className="text-right">
             <p className="font-semibold text-white">
               {fee.marketCap && fee.marketCap !== null && Number(fee.marketCap) > 0 

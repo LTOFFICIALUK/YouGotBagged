@@ -7,7 +7,7 @@ import { TokenCard } from '@/components/TokenCard'
 import { Header } from '@/components/Header'
 import { Hero } from '@/components/Hero'
 import { FeeShareTracker } from '@/components/FeeShareTracker'
-import { FeeAnalyzer } from '@/components/FeeAnalyzer'
+// import { FeeAnalyzer } from '@/components/FeeAnalyzer'
 
 import { 
   DollarSign, 
@@ -26,6 +26,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState<boolean>(false)
+  const [showFeeShareTracker, setShowFeeShareTracker] = useState<boolean>(false)
 
   const handleRefresh = async () => {
     setRefreshing(true)
@@ -46,13 +47,13 @@ export default function Dashboard() {
       const apiTest = await testBagsAPI()
       console.log('API test result:', apiTest)
       
-      const [fees, total] = await Promise.all([
-        getUnclaimedFees(),
-        getTotalUnclaimedValue()
-      ])
+      const fees = await getUnclaimedFees()
       
       console.log('Fetched fees:', fees)
-      console.log('Total value:', total)
+      
+      // Calculate total value by summing all lifetime fees USD (Total Raised)
+      const total = fees.reduce((sum, fee) => sum + (fee.lifetimeFeesUSD || fee.totalFees || 0), 0)
+      console.log('Calculated total value:', total)
       
       setUnclaimedFees(fees)
       setTotalValue(total)
@@ -81,7 +82,7 @@ export default function Dashboard() {
 
     return (
     <div className="min-h-screen bg-background">
-      <Header onRefresh={handleRefresh} refreshing={refreshing} />
+      <Header onOpenFeeTracker={() => setShowFeeShareTracker(true)} />
 
       {/* Hero Section */}
       <Hero />
@@ -112,7 +113,7 @@ export default function Dashboard() {
           <div className="glass-effect rounded-lg p-6 card-hover">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-muted-foreground text-sm">Tokens with Fees</p>
+                <p className="text-muted-foreground text-sm">BagsApp Tokens Displayed</p>
                 <p className="text-2xl font-bold text-white">
                   {unclaimedFees.length}
                 </p>
@@ -134,15 +135,12 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Fee Share Wallet Tracker */}
-        <div className="mb-8">
-          <FeeShareTracker />
-        </div>
 
-        {/* Fee Claim Analysis */}
-        <div className="mb-8">
+
+        {/* Fee Claim Analysis - Temporarily Hidden */}
+        {/* <div className="mb-8">
           <FeeAnalyzer />
-        </div>
+        </div> */}
 
         {/* Total Raised List */}
         <div className="space-y-4 mb-8">
@@ -157,22 +155,35 @@ export default function Dashboard() {
               </p>
             </div>
           ) : (
-            <div className="grid gap-4">
-              {unclaimedFees.map((fee) => (
-                <TokenCard 
-                  key={fee.tokenAddress} 
-                  fee={fee}
-                  onClaim={(tokenAddress) => {
-                    console.log('Successfully claimed fees for token:', tokenAddress)
-                    // Refresh the data after successful claim
-                    fetchData()
-                  }}
-                />
-              ))}
+            <div className="overflow-x-auto">
+              <div className="grid gap-4" style={{ minWidth: 'max-content' }}>
+                {unclaimedFees.map((fee) => (
+                  <TokenCard 
+                    key={fee.tokenAddress} 
+                    fee={fee}
+                    onClaim={(tokenAddress) => {
+                      console.log('Successfully claimed fees for token:', tokenAddress)
+                      // Refresh the data after successful claim
+                      fetchData()
+                    }}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </div>
       </main>
+
+      {/* Fee Share Tracker Popup */}
+      <FeeShareTracker 
+        isOpen={showFeeShareTracker}
+        onClose={() => setShowFeeShareTracker(false)}
+        availableTokens={unclaimedFees.map(fee => ({
+          tokenAddress: fee.tokenAddress,
+          tokenName: fee.tokenName,
+          tokenSymbol: fee.tokenSymbol
+        }))}
+      />
     </div>
   )
 } 
