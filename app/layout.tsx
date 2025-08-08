@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { Footer } from '@/components/Footer'
 
 const inter = { className: 'font-inter' }
 
@@ -27,8 +28,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} bg-background text-foreground antialiased`}>
+      <body className={`${inter.className} bg-background text-foreground antialiased`}>        
         {children}
+        <Footer />
       </body>
     </html>
   )

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { UnclaimedFee, getUnclaimedFees, getTotalUnclaimedValue, testBagsAPI } from '@/lib/bags-api'
 import { formatCurrency, getRelativeTime } from '@/lib/utils'
 import { TokenCard } from '@/components/TokenCard'
@@ -17,7 +17,9 @@ import {
   ExternalLink,
   AlertCircle,
   CheckCircle,
-  Loader2
+  Loader2,
+  Search as SearchIcon,
+  X as CloseIcon,
 } from 'lucide-react'
 
 export default function Dashboard() {
@@ -27,6 +29,7 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState<boolean>(false)
   const [showFeeShareTracker, setShowFeeShareTracker] = useState<boolean>(false)
+  const [searchQuery, setSearchQuery] = useState<string>('')
 
   const handleRefresh = async () => {
     setRefreshing(true)
@@ -68,6 +71,15 @@ export default function Dashboard() {
   useEffect(() => {
     fetchData()
   }, [])
+
+  const filteredFees = useMemo(() => {
+    if (!searchQuery.trim()) return unclaimedFees
+    const q = searchQuery.toLowerCase().trim()
+    return unclaimedFees.filter(fee => {
+      const fields = [fee.tokenName, fee.tokenSymbol, fee.tokenAddress]
+      return fields.some(v => (v || '').toLowerCase().includes(q))
+    })
+  }, [searchQuery, unclaimedFees])
 
   if (loading) {
     return (
@@ -144,33 +156,61 @@ export default function Dashboard() {
 
         {/* Total Raised List */}
         <div className="space-y-4 mb-8">
-          <h2 className="text-xl font-semibold text-foreground">Total Raised</h2>
-          
-          {unclaimedFees.length === 0 ? (
-            <div className="glass-effect rounded-lg p-8 text-center">
-              <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">No Unclaimed Fees</h3>
-              <p className="text-muted-foreground">
-                All your fees have been claimed! Check back later for new unclaimed fees.
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <div className="grid gap-4" style={{ minWidth: 'max-content' }}>
-                {unclaimedFees.map((fee) => (
-                  <TokenCard 
-                    key={fee.tokenAddress} 
-                    fee={fee}
-                    onClaim={(tokenAddress) => {
-                      console.log('Successfully claimed fees for token:', tokenAddress)
-                      // Refresh the data after successful claim
-                      fetchData()
-                    }}
-                  />
-                ))}
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-foreground">Total Raised</h2>
+          </div>
+
+          <div className="overflow-x-auto">
+            <div className="min-w-[800px] space-y-4">
+              {/* Search Bar */}
+              <div className="relative">
+                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by name, symbol, or address"
+                  aria-label="Search tokens"
+                  role="searchbox"
+                  className="w-full bg-[#15171A] border border-border/60 rounded-lg pl-9 pr-10 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus:ring-transparent focus:border-border"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    aria-label="Clear search"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-white/5"
+                  >
+                    <CloseIcon className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                )}
               </div>
+
+              {filteredFees.length === 0 ? (
+                <div className="glass-effect rounded-lg p-8 text-center">
+                  <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No matches</h3>
+                  <p className="text-muted-foreground">
+                    Try a different search term.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {filteredFees.map((fee) => (
+                    <TokenCard 
+                      key={fee.tokenAddress} 
+                      fee={fee}
+                      onClaim={(tokenAddress) => {
+                        console.log('Successfully claimed fees for token:', tokenAddress)
+                        // Refresh the data after successful claim
+                        fetchData()
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </main>
 
