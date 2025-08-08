@@ -13,7 +13,8 @@ export async function GET(request: NextRequest) {
   console.log('OAuth Callback - Error Description:', error_description)
 
   if (error) {
-    return NextResponse.redirect(`https://yougotbagged.fun?error=${error}`)
+    console.error('OAuth Error Details:', { error, error_description })
+    return NextResponse.redirect(`https://yougotbagged.fun?error=${error}&description=${error_description || 'Unknown error'}`)
   }
 
   if (!code) {

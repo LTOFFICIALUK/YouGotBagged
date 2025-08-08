@@ -41,8 +41,8 @@ export const Header = ({ onOpenFeeTracker }: HeaderProps) => {
     try {
       setIsConnecting(true)
       
-      // Get OAuth URL
-      const response = await fetch('/api/auth/x?action=login')
+      // Get OAuth URL (try simple version first)
+      const response = await fetch('/api/auth/x/simple?action=login')
       const data = await response.json()
       
       if (data.authUrl) {
