@@ -35,8 +35,12 @@ export const Hero = ({
       </div>
 
       {/* Username */}
-      <div className="mb-6">
+      <div className="mb-2">
         <p className="text-white font-bold text-3xl">@YouGotBagged</p>
+      </div>
+
+      <div className="mb-6 px-10">
+        <p className="text-gray-400 text-xl text-center">YouGotBagged uses the power of the community to help others find their bags.</p>
       </div>
 
       {/* Follow Button */}
@@ -54,7 +58,7 @@ export const Hero = ({
       {/* SOL Balance */}
       <div className="flex items-center gap-3 mb-12">
         <Wallet className="w-6 h-6 text-primary" />
-        <span className="text-white font-semibold text-lg">{solBalance} SOL</span>
+        <span className="text-white font-semibold text-lg">{solBalance} SOL Claimed</span>
       </div>
     </div>
   )
