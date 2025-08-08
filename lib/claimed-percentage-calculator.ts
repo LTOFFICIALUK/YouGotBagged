@@ -372,7 +372,7 @@ export const getTokenWaterfallClaimedPercentage = async (
     let totalClaimedForThisToken = 0
 
     // For each unique wallet, we need to find all their tokens to apply waterfall logic
-    for (const [walletAddress, walletInfo] of walletGroups) {
+    for (const [walletAddress, walletInfo] of walletGroups.entries()) {
       totalCalculatedEarnings += walletInfo.thisTokenEarnings
 
       // TODO: In a full implementation, we'd need to query all tokens for this wallet
