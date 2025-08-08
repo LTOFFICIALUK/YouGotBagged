@@ -45,7 +45,7 @@ export const Hero = ({
       </div>
 
       {/* CTA Buttons */}
-      <div className="mb-6 flex items-center gap-3">
+      <div className="mb-6 flex items-center gap-3 mx-4">
         <Link
           href="/$BAGGED-Token"
           className="inline-block bg-primary text-primary-foreground px-9 py-3 rounded-full font-bold hover:bg-primary/90 transition-colors text-lg"
